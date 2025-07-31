@@ -1,62 +1,59 @@
 import { Select, Card } from 'antd';
-import { useState } from 'react';
 import { usePokemonStore } from './store/usePokemonStore';
+import { useState } from 'react';
 
-const BattleArena = () => {
+export default function BattleArena() {
   const { collection } = usePokemonStore();
   const [first, setFirst] = useState(null);
   const [second, setSecond] = useState(null);
 
-  const getWinner = () => {
-    if (!first || !second) return null;
-    return first.base_experience > second.base_experience ? first : second;
+  const calculatePower = (poke) => {
+    return (
+      poke.stats[0].base_stat + // HP
+      poke.stats[1].base_stat + // Attack
+      poke.stats[2].base_stat + // Defense
+      poke.stats[5].base_stat   // Speed
+    );
   };
 
-  const options = collection.map((p) => ({
-    label: p.name,
-    value: p.name,
-  }));
-
-  const selectPokemon = (name) => collection.find((p) => p.name === name);
-
-  const winner = getWinner();
+  const winner =
+    first && second
+      ? calculatePower(first) > calculatePower(second)
+        ? first.name
+        : second.name
+      : null;
 
   return (
-    <div style={{ textAlign: 'center', padding: 30 }}>
-      <h2>Battle Arena</h2>
+    <>
       <Select
-        placeholder="Choose first Pokemon"
-        options={options}
-        onChange={(val) => setFirst(selectPokemon(val))}
-        style={{ width: 200, margin: '0 20px' }}
-      />
+        style={{ width: 200, marginRight: 10 }}
+        placeholder="Выбери первого"
+        onChange={(name) => setFirst(collection.find(p => p.name === name))}
+      >
+        {collection.map(poke => (
+          <Select.Option key={poke.name} value={poke.name}>
+            {poke.name}
+          </Select.Option>
+        ))}
+      </Select>
+
       <Select
-        placeholder="Choose second Pokemon"
-        options={options}
-        onChange={(val) => setSecond(selectPokemon(val))}
         style={{ width: 200 }}
-      />
+        placeholder="Выбери второго"
+        onChange={(name) => setSecond(collection.find(p => p.name === name))}
+      >
+        {collection.map(poke => (
+          <Select.Option key={poke.name} value={poke.name}>
+            {poke.name}
+          </Select.Option>
+        ))}
+      </Select>
 
       {first && second && (
-        <div style={{ marginTop: 40, display: 'flex', justifyContent: 'center', gap: 40 }}>
-          <Card title={first.name} style={{ width: 200 }}>
-            <img src={first.image} alt={first.name} style={{ width: '100%' }} />
-            <p>EXP: {first.base_experience}</p>
-          </Card>
-          <Card title={second.name} style={{ width: 200 }}>
-            <img src={second.image} alt={second.name} style={{ width: '100%' }} />
-            <p>EXP: {second.base_experience}</p>
-          </Card>
-        </div>
+        <Card title="Результат" style={{ marginTop: 20 }}>
+          <p>Победитель: <strong>{winner}</strong></p>
+        </Card>
       )}
-
-      {winner && (
-        <p style={{ marginTop: 20 }}>
-           Winner: <strong>{winner.name}</strong>!
-        </p>
-      )}
-    </div>
+    </>
   );
-};
-
-export default BattleArena;
+}

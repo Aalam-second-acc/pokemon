@@ -1,24 +1,13 @@
-import { useQuery } from 'react-query';
+import axios from 'axios';
 
-export const fetchPokemonList = async () => {
-  const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=20');
-  const data = await res.json();
-
-  const detailed = await Promise.all(
-    data.results.map(async (pokemon) => {
-      const res = await fetch(pokemon.url);
-      const detail = await res.json();
-      return {
-        name: detail.name,
-        image: detail.sprites.front_default,
-        base_experience: detail.base_experience,
-      };
-    })
-  );
-
-  return detailed;
+export const fetchPokemonList = async ({ pageParam = 0 }) => {
+  const limit = 20;
+  const offset = pageParam * limit;
+  const res = await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`);
+  return res.data;
 };
 
-export const usePokemons = () => {
-  return useQuery('pokemons', fetchPokemonList);
+export const fetchPokemonDetails = async (url) => {
+  const res = await axios.get(url);
+  return res.data;
 };
